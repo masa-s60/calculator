@@ -1,0 +1,92 @@
+<!DOCTYPE HTML>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0,minimum-scale=1.0">
+    <link rel="stylesheet" href="./calculator.css">
+    <title>計算機</title>
+  </head>
+
+  <body>
+    <header class="l-header">
+    </header>
+
+    <div class="p-calculator u-calculator">
+      <input id="display" class="p-display u-display" type="text" placeholder="0">
+
+      <table class="p-keypad u-keypad">
+        <tr class="">
+          <td class="">
+            <input id="AC" class="p-keypad__all-clear" type="button" value="AC">
+          </td>
+          <td>
+            <input id="plusMinus" class="p-keypad__symbol-change" type="button" value="+/-">
+          </td>
+          <td>
+            <input id="percent" class="p-keypad__percent" type="button" value="%">
+          </td>
+          <td>
+            <input id="division" class="p-keypad__division" type="button" value="÷">
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <input id="seven" type="button" value="7">
+          </td>
+          <td>
+            <input id="eight" type="button" value="8">
+          </td>
+          <td>
+            <input id="nine" type="button" value="9">
+          </td>
+          <td>
+            <input id="mult" class="p-keypad__multiplication" type="button" value="×">
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <input id="four" type="button" value="4">
+          </td>
+          <td>
+            <input id="five" type="button" value="5">
+          </td>
+          <td>
+            <input id="six" type="button" value="6">
+          </td>
+          <td>
+            <input id="sub" class="p-keypad__subtraction" type="button" value="－">
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <input id="one" type="button" value="1">
+          </td>
+          <td>
+            <input id="two" type="button" value="2">
+          </td>
+          <td>
+            <input id="three" type="button" value="3">
+          </td>
+          <td>
+            <input id="add" class="p-keypad__addition" type="button" value="+">
+          </td>
+        </tr>
+        <tr>
+          <td colspan="2">
+            <input id="zero" class="p-keypad__zero" type="button" value="0">
+          </td>
+          <td>
+            <input id="decimal"  type="button" value=".">
+          </td>
+          <td>
+            <input id="equal" type="button" value="=">
+          </td>
+        </tr>
+      </table>
+
+    </div>
+
+    <script type="text/javascript" src="./calculator.js"></script>  
+  </body>
+</html>
