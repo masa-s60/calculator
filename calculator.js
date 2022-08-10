@@ -20,137 +20,361 @@ const buttonZero = document.getElementById('zero');
 const buttonDecimal = document.getElementById('decimal');
 const buttonEqual = document.getElementById('equal');
 
-// let num = '';
-// console.log(num);
-// console.log(typeof buttonSeven.value);
-// num = num.concat(buttonSeven.value);
-
-let operand1 = [];
-let operand2 = [];
-const operators = ['+', '-', '*', '/'];
+let operand1 = '0';
+let setOperand1 = 'off';
+let operand2 = '0';
+let setOperand2 = 'off';
+let clickedEqual = '';
+const operatorList = ['+', '-', '*', '/'];
 let operator = '';
+let displayReset = '';
+const containDecimal = /^(?=.*\.).*$/;
+let start = '';
 
-const addArray1 = (array, clickNumber) => {
-  if(array <= 8) {
-    operand1.push(clickNumber);
-    let array1Text = operand1.join('');
-    display.value = array1Text;
+const changeNumAppearance = (inputNumber) => {
+  start = 'on';
+  if(inputNumber === isNaN(input)) {
+    inputNumber = String(inputNumber);
+  }
+  input(inputNumber);
+  display.value = addComma(display.value);
+}
+
+const input = (addNumber) => {
+  if((addNumber === '0') && (display.value === '0')) {
+    return;
+  } else if((addNumber === '.') && (containDecimal.test(display.value))) {
+    return;
+  } else if(containDecimal.test(display.value)) {
+    display.value = `${display.value}${addNumber}`;
+  } else if((/^0/) && (!containDecimal.test(display.value))) {
+    if(addNumber === '\.') {
+      display.value = `${display.value}${addNumber}`;
+    } else {
+      display.value = display.value.replace(/^0/, '');
+      display.value = `${display.value}${addNumber}`;  
+    }
   }
 }
 
-const addArray2 = (array, clickNumber) => {
-  if(array <= 8) {
-    operand2.push(clickNumber);
-    let array2Text = operand2.join('');
-    display.value = array2Text;  
+const addComma = (displayNum) => {
+  if(containDecimal.test(displayNum)) {
+    displayNum = displayNum.replace(/,/g, '');
+    console.log(displayNum);
+    let integer = displayNum.substr(0, displayNum.indexOf('.'));
+    let float = displayNum.substr(displayNum.indexOf('.') + 1)
+    console.log(float);
+    display.value = checkDigit(integer);
+    if (containDecimal.test(display.value)) {
+      return display.value + float;
+    } else {
+      return display.value + '.' + float;
+    }
+  } else {
+    displayNum = displayNum.replace(/,/g, '');
+    return checkDigit(displayNum);
+  }
+  // display.value = `${originNumber.match(/.{1,3}/g).join(',')}`;
+  // display.value = Number(originNumber.replace(/,/g, "")).toLocaleString(undefined,
+  // {maximumFractionDigits: 8});
+}
+
+const removeComma = (originNumber) => {
+  return originNumber.replace(/,/g, '');
+}
+
+const checkDigit = (originNumber) => {
+  if(originNumber.length >= 4) {
+    let lastThreeDigit = originNumber.slice(-3);
+    let cutOrigin = originNumber.slice(0, -3);
+    originNumber = cutOrigin + ',' + lastThreeDigit;
+    console.log(originNumber);
+  }
+  if(originNumber.length >= 8) {
+    let lastSevenDigit = originNumber.slice(-7);
+    let cutOrigin = originNumber.slice(0, -7);
+    originNumber = cutOrigin + ',' + lastSevenDigit;
+    return originNumber;
+  }
+  return originNumber;
+}
+
+const addDisplayNumber1 = (digit, clickNumber) => {
+  if(digit.replace(/,/g, '').replace(/\./g, '').length <= 8) {
+    changeNumAppearance(clickNumber);
+  }
+}
+
+const addDisplayNumber2 = (digit, clickNumber) => {
+  if(displayReset === 'on') {
+    display.value = '0';
+  }
+  if(digit.replace(/,/g, '').length <= 8) {
+    changeNumAppearance(clickNumber);
+    setOperand2 = 'on';
+    displayReset = 'off';
+  }
+}
+
+const setValue = (inputNumber) => {
+  //初回セット
+  if((setOperand1 === 'off') || (clickedEqual === 'clicked')) {
+    operand1 = removeComma(inputNumber);
+    clickedEqual = '';
+    operand2 = '0';
+  } else if((setOperand1 === 'on') && (setOperand2 === 'on')) {
+    operand2 = removeComma(inputNumber);
+    operand1 = calculation(operand1, operand2, operator);
+    operand1 = String(operand1);
+    // console.log(operand1);
+    // console.log(operand2);
+  }
+  if(setOperand1 === 'on') {
+    
+  }
+  display.value = addComma(operand1);
+  interimResult = '';
+  setOperand1 = 'on';
+  setOperand2 = 'off';
+  operand2 = '0';
+  displayReset = 'on';
+}
+
+function getDotPosition(operand){
+  var strVal = String(operand);
+  var dotPosition = 0;
+  if(strVal.lastIndexOf('.') !== -1){
+    dotPosition = strVal.length - (strVal.lastIndexOf('.') + 1);
+  }
+  return dotPosition;
+}
+
+function calculation(value1, value2, operator) {
+  let dotPosition1 = getDotPosition(value1);
+  let dotPosition2 = getDotPosition(value2);
+  let max = Math.max(dotPosition1,dotPosition2);
+  value1 = Number(value1);
+  value2 = Number(value2);
+  let intValue1 = parseInt((value1.toFixed(max) + '').replace('.', ''));
+  let intValue2 = parseInt((value2.toFixed(max) + '').replace('.', ''));
+  let power = Math.pow(10,max);
+  if(operator === '+') {
+    return (intValue1 + intValue2) / power;   
+  } else if(operator === '-') {
+    return (intValue1 - intValue2) / power;   
+  } else if(operator === '*') {
+    return (intValue1 * intValue2) / power;   
+  } else if(operator === '/') {
+    if((intValue1 === 0) || (intValue2 === 0) || (power === 0)) {
+      return 0;
+    } else {
+      return (intValue1 / intValue2) / power;
+    }
+  } else if (operator === '') {
+    return intValue2;
   }
 }
 
 const allClear = () => {
-  operand1 = [];
-  operand2 = [];
+  operand1 = '0';
+  setOperand1 = 'off';
+  operand2 = '0';
+  setOperand2 = 'off';
+  clickedEqual = '';
   operator = '';
-  display.value = '0';  
+  displayReset = '';
+  display.value = '0';
+  start = '';
 }
 
-const addition = () => {
-  operator = operators[0];
-  console.log(operator);
+const addition = (inputResult) => {
+  operator = operatorList[0];
+  setValue(inputResult);
+  setOperand1 = 'on'; 
 }
 
-const subtraction = () => {
-  operator = operators[1];
-  console.log(operator);
+const subtraction = (inputResult) => {
+  operator = operatorList[1];
+  setValue(inputResult);
+  setOperand1 = 'on';
 }
 
-const multiplication = () => {
-  operator = operators[2];
+const multiplication = (inputResult) => {
+  operator = operatorList[2];
+  setValue(inputResult);
+  setOperand1 = 'on';
 }
 
-const division = () => {
-  operator = operators[3];
+const division = (inputResult) => {
+  operator = operatorList[3];
+  setValue(inputResult);
+  setOperand1 = 'on';
 }
 
-const equal = () => {
-  let formula = `${operand1.join('')}${operator}${operand2.join('')}`;
-  console.log(formula);
-  display.value = Function('return ('+formula+');')();
+const equal = (inputNumber) => {
+  if(clickedEqual === 'clicked') {
+    operand1 = calculation(operand1, operand2, operator);
+    operand1 = String(operand1);
+    display.value = addComma(operand1);
+    displayReset = 'on';
+  } else {
+  operand2 = removeComma(inputNumber);
+  operand1 = calculation(operand1, operand2, operator);
+  operand1 = String(operand1);
+  display.value = addComma(operand1);
+  displayReset = 'on';
+  clickedEqual = 'clicked';
+  console.log(operand2);
+  }
 }
-
-// num = num.concat(buttonSeven);
-// const numSeven = Number(buttonSeven.textContent);
-// console.log(numSeven);
 
 buttonAllClear.addEventListener('click', () => {
   allClear();
 });
 
-buttonSeven.addEventListener('click', () => {
-  if(operator === '') {
-    addArray1(operand1.length, buttonSeven.value);
+buttonPlusMinus.addEventListener('click', () => {
+});
+
+buttonPercent.addEventListener('click', () => {
+  if(start === '') {
+    return;
   } else {
-    addArray2(operand2.length, buttonSeven.value);
+  }
+});
+
+buttonDivision.addEventListener('click', () => {
+  if(start === '') {
+    return;
+  } else {
+    division(display.value);
+  }
+});
+
+const checkDecimal = (originNumber, decimal) => {
+  if(/^(?=.*\.).*$/.test(originNumber)) {
+    return;
+  } else {
+    display.value = `${originNumber}${decimal}`;
+  }
+}
+
+buttonSeven.addEventListener('click', () => {
+  if(setOperand1 === 'off') {
+    addDisplayNumber1(display.value,buttonSeven.value);
+  } else { 
+    addDisplayNumber2(display.value,buttonSeven.value);
   }
 });
 
 buttonEight.addEventListener('click', () => {
-  if(operator === '') {
-    addArray1(operand1.length, buttonEight.value);
+  if(setOperand1 === 'off') {
+    addDisplayNumber1(display.value, buttonEight.value);
   } else {
-    addArray2(operand2.length, buttonEight.value);
+    addDisplayNumber2(display.value, buttonEight.value);
   }
 });
 
 buttonNine.addEventListener('click', () => {
-  if(operator === '') {
-    addArray1(operand1.length, buttonNine.value);
+  if(setOperand1 === 'off') {
+    addDisplayNumber1(display.value, buttonNine.value);
   } else {
-    addArray2(operand2.length, buttonNine.value);
+    addDisplayNumber2(display.value, buttonNine.value);
   }});
 
 buttonMultiplication.addEventListener('click', () => {
-  multiplication();
+  if(start === '') {
+    return;
+  } else {
+    multiplication(display.value);
+  }
 });
 
 buttonFour.addEventListener('click', () => {
-  addArray1(operand1.length, buttonFour.value);
+  if(setOperand1 === 'off') {
+    addDisplayNumber1(display.value, buttonFour.value);
+  } else {
+    addDisplayNumber2(display.value, buttonFour.value);
+  }
 });
 
 buttonFive.addEventListener('click', () => {
-  addArray1(operand1.length, buttonFive.value);
+  if(setOperand1 === 'off') {
+    addDisplayNumber1(display.value, buttonFive.value);
+  } else {
+    addDisplayNumber2(display.value, buttonFive.value);
+  }
 });
 
 buttonSix.addEventListener('click', () => {
-  addArray1(operand1.length, buttonSix.value);
+  if(setOperand1 === 'off') {
+    addDisplayNumber1(display.value, buttonSix.value);
+  } else {
+    addDisplayNumber2(display.value, buttonSix.value);
+  }
 });
 
 buttonSubtraction.addEventListener('click', () => {
-  subtraction();
+  if(start === '') {
+    return;
+  } else {
+    subtraction(display.value);
+  }
 });
 
 buttonOne.addEventListener('click', () => {
-  addArray1(operand1.length, buttonFour.value);
+  if(setOperand1 === 'off') {
+    addDisplayNumber1(display.value, buttonOne.value);
+  } else {
+    addDisplayNumber2(display.value, buttonOne.value);
+  }
 });
 
 buttonTwo.addEventListener('click', () => {
-  addArray1(operand1.length, buttonTwo.value);
+  if(setOperand1 === 'off') {
+    addDisplayNumber1(display.value, buttonTwo.value);
+  } else {
+    addDisplayNumber2(display.value, buttonTwo.value);
+  }
 });
 
 buttonThree.addEventListener('click', () => {
-  addArray1(operand1.length, buttonThree.value);
+  if(setOperand1 === 'off') {
+    addDisplayNumber1(display.value, buttonThree.value);
+  } else {
+    addDisplayNumber2(display.value, buttonThree.value);
+  }
 });
 
 buttonAddition.addEventListener('click', () => {
-  addition();
+  if(start === '') {
+    return;
+  } else {
+    addition(display.value);
+  }
 });
 
 buttonZero.addEventListener('click', () => {
-  addArray1(operand1.length, buttonZero.value);
+  if(setOperand1 === 'off') {
+    addDisplayNumber1(display.value, buttonZero.value);
+  } else {
+    addDisplayNumber2(display.value, buttonZero.value);
+  }
 });
 
 buttonDecimal.addEventListener('click', () => {
+  if(setOperand1 === 'off') {
+    addDisplayNumber1(display.value, buttonDecimal.value);
+    // checkDecimal(display.value, buttonDecimal.value);
+  } else {
+    addDisplayNumber2(display.value, buttonDecimal.value);
+    // if(/^(?=.*\.).*$/.test(operand2)) {
+    //   return;
+    // } else {
+    //   addDisplayNumber2(operand2, buttonDecimal.value);
+    // }
+  }
 });
 
 buttonEqual.addEventListener('click', () => {
-  equal();
+  equal(display.value);
 });
