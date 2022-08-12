@@ -27,9 +27,16 @@ let setOperand2 = 'off';
 let clickedEqual = '';
 const operatorList = ['+', '-', '*', '/'];
 let operator = '';
+let previousOperator = '';
 let displayReset = '';
 const containDecimal = /^(?=.*\.).*$/;
+const includeOperator = /^(?=.*\+|\-|\*|\/).*$/;
+const includeDecimalOperand1  = /(^\d{1,9}|\d{1,9}\.\d{1,9})(\+|\-)/;
+const includeDecimalOperand2  = /(\+|\-\d{1,9}|\d{1,9}\.\d{1,9}\*|\/).*$/;
+const includeAdditionOrSubtraction = /\+|\-/;
+const includeMultiplicationOrDivision = /\*|\//;
 let start = '';
+let formula = '';
 
 const changeNumAppearance = (inputNumber) => {
   start = 'on';
@@ -124,15 +131,27 @@ const setValue = (inputNumber) => {
     operand2 = '0';
   } else if((setOperand1 === 'on') && (setOperand2 === 'on')) {
     operand2 = removeComma(inputNumber);
-    operand1 = calculation(operand1, operand2, operator);
-    operand1 = String(operand1);
-    // console.log(operand1);
-    // console.log(operand2);
   }
   if(setOperand1 === 'on') {
-    
+    if(includeOperator.test(operand1)) {
+      let [separatedOperand1, separatedOperator1, separatedOperand2, separatedOperator2]
+        = separateIntoOperands(operand1);
+      operand1 = calculateMidwayFormula(separatedOperand1, separatedOperator1, separatedOperand2, separatedOperator2);
+      // let strFormula = `${separatedOperand1}${separatedOperator1}${separatedOperand2}${separatedOperator2}${inputNumber}`;
+      // console.log(`${separatedOperand1}${separatedOperator1}${separatedOperand2}${separatedOperator2}${inputNumber}`);
+      // console.log(strFormula);
+      // operand1 = Function('return ('+strFormula+');')();
+      console.log(typeof operand1);
+      display.value = String(operand1);
+      console.log(typeof operand1);
+    } else {
+      operand1 = calculation(operand1, operand2, operator);
+      display.value = operand1;
+      console.log(typeof operand1);
+    }
+    operand1 = String(operand1);
   }
-  display.value = addComma(operand1);
+  display.value = addComma(display.value);
   interimResult = '';
   setOperand1 = 'on';
   setOperand2 = 'off';
@@ -140,39 +159,56 @@ const setValue = (inputNumber) => {
   displayReset = 'on';
 }
 
-function getDotPosition(operand){
-  var strVal = String(operand);
-  var dotPosition = 0;
-  if(strVal.lastIndexOf('.') !== -1){
-    dotPosition = strVal.length - (strVal.lastIndexOf('.') + 1);
-  }
-  return dotPosition;
+const setFormula = (inputNumber, firstOperator) => {
+  console.log(operand1);
+  console.log(inputNumber);
+  return `${operand1}${firstOperator}${inputNumber}${operator}`;
 }
 
-function calculation(value1, value2, operator) {
-  let dotPosition1 = getDotPosition(value1);
-  let dotPosition2 = getDotPosition(value2);
-  let max = Math.max(dotPosition1,dotPosition2);
-  value1 = Number(value1);
-  value2 = Number(value2);
-  let intValue1 = parseInt((value1.toFixed(max) + '').replace('.', ''));
-  let intValue2 = parseInt((value2.toFixed(max) + '').replace('.', ''));
-  let power = Math.pow(10,max);
-  if(operator === '+') {
-    return (intValue1 + intValue2) / power;   
-  } else if(operator === '-') {
-    return (intValue1 - intValue2) / power;   
-  } else if(operator === '*') {
-    return (intValue1 * intValue2) / power;   
-  } else if(operator === '/') {
-    if((intValue1 === 0) || (intValue2 === 0) || (power === 0)) {
-      return 0;
-    } else {
-      return (intValue1 / intValue2) / power;
-    }
-  } else if (operator === '') {
-    return intValue2;
+const separateIntoOperands = (midwayFormula) => {
+  let firstOperandAndOperator = midwayFormula.match(includeDecimalOperand1);
+  console.log(firstOperandAndOperator[0]);
+  let firstOperand = firstOperandAndOperator[0].slice(0, -1);
+  console.log(firstOperand);
+  let secondOperandAndOperator = midwayFormula.match(includeDecimalOperand2);
+  console.log(secondOperandAndOperator[0]);
+  let secondOperand = secondOperandAndOperator[0].slice(1).slice(0, -1);
+  console.log(secondOperand);
+  let includeFirstOperator = midwayFormula.match(includeAdditionOrSubtraction);
+  console.log(includeFirstOperator[0]);
+  let includeSecondOperator = midwayFormula.match(includeMultiplicationOrDivision);
+  console.log(includeSecondOperator[0]);
+  return [firstOperand, includeFirstOperator[0], secondOperand, includeSecondOperator[0]];
+}
+
+function getDecimalPosition(operand){
+  var strVal = String(operand);
+  var decimalPosition = 0;
+  if(strVal.lastIndexOf('.') !== -1){
+    decimalPosition = strVal.length - (strVal.lastIndexOf('.') + 1);
   }
+  return decimalPosition;
+}
+
+const calculation = (strFirstOperand, strSecondOperand, firstOperator) => {
+  let firstOperandDecimalVolume = getDecimalPosition(strFirstOperand);
+  let secondOperandDecimalVolume = getDecimalPosition(strSecondOperand);
+  let maxVolume = Math.max(firstOperandDecimalVolume,secondOperandDecimalVolume);
+  let numFirstOperand = Number(strFirstOperand);
+  let numSecondOperand = Number(strSecondOperand);
+  let intFirstOperand = parseInt((numFirstOperand.toFixed(maxVolume) + '').replace('.', ''));
+  let intSecondOperand = parseInt((numSecondOperand.toFixed(maxVolume) + '').replace('.', ''));
+  strFirstOperand = String(intFirstOperand);
+  strSecondOperand = String(intSecondOperand);
+  let fixOperand = Math.pow(10,maxVolume);
+  let strFormula =`${strFirstOperand}${firstOperator}${strSecondOperand}`;
+  return (Function('return ('+strFormula+');')() / fixOperand);
+}
+
+const calculateMidwayFormula = (strFirstOperand, firstOperator, strSecondOperand, secondOperator) => {
+  let MultiplicationOrDivision = `${strSecondOperand}${secondOperator}${display.value}`;
+  let midwayResult = String(Function('return ('+MultiplicationOrDivision+');')());
+  return calculation(strFirstOperand, midwayResult, firstOperator);
 }
 
 const allClear = () => {
@@ -188,9 +224,9 @@ const allClear = () => {
 }
 
 const addition = (inputResult) => {
-  operator = operatorList[0];
-  setValue(inputResult);
-  setOperand1 = 'on'; 
+    operator = operatorList[0];
+    setValue(inputResult);
+    setOperand1 = 'on'; 
 }
 
 const subtraction = (inputResult) => {
@@ -200,9 +236,19 @@ const subtraction = (inputResult) => {
 }
 
 const multiplication = (inputResult) => {
+  if(/./.test(operator)) {
+    previousOperator = operator;
+  }
+  if((previousOperator === '-') || (previousOperator === '+')) {
+    operator = operatorList[2];
+    operand1 = setFormula(display.value, previousOperator);
+    console.log(operand1);
+  } else {
+    setValue(inputResult);
+  }
   operator = operatorList[2];
-  setValue(inputResult);
   setOperand1 = 'on';
+  displayReset = 'on';
 }
 
 const division = (inputResult) => {
