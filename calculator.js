@@ -19,62 +19,48 @@ const buttonZero = document.getElementById('zero');
 const buttonDecimal = document.getElementById('decimal');
 const buttonEqual = document.getElementById('equal');
 
-let operand1 = '0';
-let operand2 = '0';
-let setOperand = 'off';
-let clickedEqual = '';
 const operatorList = ['+', '-', '*', '/'];
-let operator = '';
 let displayReset = '';
-let start = '';
 let formula = '';
+let setOperand = 'off';
 let inputTimeOfMulti = '';
+let clickedEqual = '';
 
-const judgeOneSideFormula  = /^\-*(\d{1,9}|\d{1,9}\.\d{1,9})(\+|\-|\*|\/)$/;
-const getFirstOperandAndOperator = /^\-*(\d{1,9}|\d{1,9}\.\d{1,9})(\+|\-|\*|\/)/
-const judgeSimpleFormula = /^\-*(\d{1,9}|\d{1,9}\.\d{1,9})(\+|\-|\*|\/)(\d{1,9}|\d{1,9}\.\d{1,9})$/;
-const judgeOperatorAndSecondOperand  = /(\+|\-|\*|\/)(\d{1,9}|\d{1,9}\.\d{1,9})$/;
-const judgeSecondOperandAndOperator  = /(\+|\-|\*|\/\d{1,9}|\d{1,9}\.\d{1,9}\*|\/).*$/;
+const getFirstOperandAndOperator = /^\-*(\d+|\d+\.\d+)(\+|\-|\*|\/)/;
+const getSecondOperandAndOperator  = /(\d+|\d+\.\d+)(\+|\-|\*|\/)$/;
+const getOperandInteger = /^-*\d*/;
+const getOperandDecimal = /\d*$/;
+const getFirstAppearOneOver= /^-*0\.0+/;
+const judgeOneSideFormula  = /^\-*(\d+|\d+\.\d+)(\+|\-|\*|\/)$/;
+const judgeSimpleFormula = /^\-*(\d+|\d+\.\d+)(\+|\-|\*|\/)(\d+|\d+\.\d+)$/;
+const judgeOperatorAndSecondOperand  = /(\+|\-|\*|\/)(\d+|\d+\.\d+)$/;
+const judgeMinusOperand  = /^\-/;
+const judgeEndDecimal  = /\.$/;
+const judgeFirstOperatorDiv = /^\-*(\d+|\d+\.\d+)\//;
+const judgeFirstOperatorMulti = /^\-*(\d+|\d+\.\d+)\*/;
 const judgeComplexFormula = 
-/^\-*(\d{1,9}|\d{1,9}\.\d{1,9})(\+|\-|\*|\/)(\d{1,9}|\d{1,9}\.\d{1,9})(\+|\-|\*|\/)$/;
+/^\-*(\d+|\d+\.\d+)(\+|\-|\*|\/)(\d+|\d+\.\d+)(\+|\-|\*|\/)$/;
 const judgeFirstOperatorMultiOrDiv =
-/^\-*(\d{1,9}|\d{1,9}\.\d{1,9})(\*|\/)(\d{1,9}|\d{1,9}\.\d{1,9})(\+|\-)$/;
+/^\-*(\d+|\d+\.\d+)(\*|\/)(\d+|\d+\.\d+)(\+|\-|\*|\/)$/;
 const judgeFirstOperatorAddOrSub =
-/^\-*(\d{1,9}|\d{1,9}\.\d{1,9})(\+|\-)(\d{1,9}|\d{1,9}\.\d{1,9})(\*|\/)$/;
+/^\-*(\d+|\d+\.\d+)(\+|\-)(\d+|\d+\.\d+)(\*|\/)$/;
 const includeAddOrSub = /\+|\-/;
 const includeMultiOrDiv = /\*|\//;
-const includeOperator = /^(?=.*\+|\-|\*|\/).*$/;
-const containDecimal = /^(?=.*\.).*$/;
+const lastOperatorAddOrSub = /^\-*(\d+|\d+\.\d+)(\+|\-|\*|\/)(\d+|\d+\.\d+)(\+|\-)$/;
+const lastOperatorMultiOrDiv = /^\-*(\d+|\d+\.\d+)(\+|\-|\*|\/)(\d+|\d+\.\d+)(\*|\/)$/;
+const includeDecimal = /^(?=.*\.).*$/;
+const includeFinalZero = /0+$/;
 // return (Function('return ('+strFormula+');')() / fixOperand);
 // -----------------------------------------------------------------------
 
-const input = (addNumber) => {
-  if((addNumber === '0') && (display.value === '0')) {
-    return;
-  } else if((addNumber === '.') && (containDecimal.test(display.value))) {
-    return;
-  } else if(containDecimal.test(display.value)) {
-    display.value = `${display.value}${addNumber}`;
-  } else if((/^0/) && (!containDecimal.test(display.value))) {
-    if(addNumber === '\.') {
-      display.value = `${display.value}${addNumber}`;
-    } else {
-      display.value = display.value.replace(/^0/, '');
-      display.value = `${display.value}${addNumber}`;  
-    }
-  }
-}
 
 // 数値区切り関数---------------------------------------------------------------
 const addComma = (displayNum) => {
-  if(containDecimal.test(displayNum)) {
-    displayNum = displayNum.replace(/,/g, '');
-    console.log(displayNum);
+  if(includeDecimal.test(displayNum)) {
     let integer = displayNum.substr(0, displayNum.indexOf('.'));
     let float = displayNum.substr(displayNum.indexOf('.') + 1)
-    console.log(float);
     display.value = checkDigit(integer);
-    if (containDecimal.test(display.value)) {
+    if (includeDecimal.test(display.value)) {
       return display.value + float;
     } else {
       return display.value + '.' + float;
@@ -85,18 +71,18 @@ const addComma = (displayNum) => {
   }
 }
 
-const removeComma = (originNumber) => {
-  return originNumber.replace(/,/g, '');
+const removeComma = (originOperand) => {
+  return originOperand.replace(/,/g, '');
 }
 
 const checkDigit = (originNumber) => {
-  if(originNumber.length >= 4) {
+  let integer = originNumber.match(/\d+/);
+  if(integer[0].length >= 4) {
     let lastThreeDigit = originNumber.slice(-3);
     let cutOrigin = originNumber.slice(0, -3);
     originNumber = cutOrigin + ',' + lastThreeDigit;
-    console.log(originNumber);
   }
-  if(originNumber.length >= 8) {
+  if(integer[0].length >= 7) {
     let lastSevenDigit = originNumber.slice(-7);
     let cutOrigin = originNumber.slice(0, -7);
     originNumber = cutOrigin + ',' + lastSevenDigit;
@@ -106,256 +92,466 @@ const checkDigit = (originNumber) => {
 }
 // -------------------------------------------------------------------------
 
-const addDisplayNumber1 = (digit, clickNumber) => {
-  if(displayReset === 'on') {
+const addDisplayNumber = (displayNum, clickNumber) => {
+  if(displayReset === 'on') { //オペレーター押下後、もしくは初回入力
     display.value = '0';
+    displayNum = '0';
     displayReset = 'off';
   }
-  if(digit.replace(/,/g, '').replace(/\./g, '').length <= 8) {
-    changeNumAppearance(clickNumber);
+  displayNum = removeComma(displayNum);
+  if(displayNum.replace(/\./g, '').length >= 9) {
+    return;
+  } else {
+    input(clickNumber);
+    display.value = addComma(display.value);
     setOperand = 'on';
   }
 }
 
-const changeNumAppearance = (inputNumber) => {
-  start = 'on';
-  if(inputNumber === isNaN(input)) {
-    inputNumber = String(inputNumber);
+  // if(inputNumber === isNaN(inputNumber)) {
+  //   inputNumber = String(inputNumber);
+  // }
+
+const input = (addNumber) => {
+  if((addNumber === '0') && (display.value === '0')) { //表示0時、0連続入力
+    return;
+  } else if(addNumber === '\.') { //小数点入力
+    if(includeDecimal.test(display.value)) { //既に小数点がある場合
+      return;
+    } else if(!includeDecimal.test(display.value)) { //小数点がなく、表示が0の場合
+      display.value = `${display.value}${addNumber}`;
+      return;
+    } 
+  } else if(addNumber !== '\.') { //小数点以外入力
+    if(/^0$/.test(display.value)) { 
+      display.value = display.value.replace(/^0/, ''); //数字初回入力時の表示0削除
+    }
+  display.value = `${display.value}${addNumber}`;
   }
-  input(inputNumber);
-  display.value = addComma(display.value);
+}
+
+// 式分離関数---------------------------------------------------------------
+const sliceFormulaOneSide = (originFormula) => {
+  let slicedOperand = originFormula.slice(0, -1);
+  let slicedOperator = originFormula.slice(-1);
+  return [slicedOperand, slicedOperator];
+}
+
+const sliceFormulaAll = (originFormula) => {
+  let operand1AndOperator1 = originFormula.match(getFirstOperandAndOperator);
+  let operand2AndOperator2 = originFormula.match(getSecondOperandAndOperator);
+  let [operand1, operator1] = sliceFormulaOneSide(operand1AndOperator1[0]);
+  let [operand2, operator2] = sliceFormulaOneSide(operand2AndOperator2[0]);
+  return [operand1, operator1, operand2, operator2];
 }
 
 const separateFormula = (midwayFormula) => {
   if(judgeOneSideFormula.test(midwayFormula)) { //1+型
-    let firstOperand = midwayFormula.slice(0, -1);
-    console.log(firstOperand);
-    let firstOperator = midwayFormula.slice(-1);
-    console.log(firstOperator);
+    let [firstOperand, firstOperator] = sliceFormulaOneSide(midwayFormula);
     return [firstOperand, firstOperator];
   } else if(judgeSimpleFormula.test(midwayFormula)) { //1+1型
-    console.log(midwayFormula);
     let firstOperandAndOperator = midwayFormula.match(getFirstOperandAndOperator);
-    console.log(firstOperandAndOperator[0]);
-    let firstOperand = firstOperandAndOperator[0].slice(0, -1);
-    console.log(firstOperand);
-    let firstOperator = firstOperandAndOperator[0].slice(-1);
-    console.log(firstOperator);
+    let [firstOperand, firstOperator] = sliceFormulaOneSide(firstOperandAndOperator[0]);
     let secondOperatorAndOperand = midwayFormula.match(judgeOperatorAndSecondOperand);
-    console.log(secondOperatorAndOperand[0]);
     let secondOperand = secondOperatorAndOperand[0].slice(1);
-    console.log(secondOperand);
     return [firstOperand, firstOperator, secondOperand];
+  } else if(judgeMinusOperand.test(midwayFormula)) { //-1-1-型
+    midwayFormula = midwayFormula.slice(1);
+    let [firstOperand, firstOperator, secondOperand, secondOperator]
+    = sliceFormulaAll(midwayFormula);
+    firstOperand = `${operatorList[1]}${firstOperand}`;
+    return [firstOperand, firstOperator, secondOperand, secondOperator];
   } else if(judgeComplexFormula.test(midwayFormula)) { //1+1+型
-    let firstOperandAndOperator = midwayFormula.match(getFirstOperandAndOperator);
-    console.log(firstOperandAndOperator[0]);
-    let firstOperand = firstOperandAndOperator[0].slice(0, -1);
-    console.log(firstOperand);
-    let secondOperandAndOperator = midwayFormula.match(judgeSecondOperandAndOperator);
-    console.log(secondOperandAndOperator[0]);
-    let includeFirstOperator = secondOperandAndOperator[0].slice(0, 1);
-    console.log(includeFirstOperator);
-    let includeSecondOperator = secondOperandAndOperator[0].slice(-1);
-    console.log(includeSecondOperator[0]);
-    console.log(secondOperandAndOperator[0]);
-    let secondOperand = secondOperandAndOperator[0].slice(1).slice(0, -1);
-    console.log(secondOperand);
-    return [firstOperand, includeFirstOperator[0], secondOperand, includeSecondOperator[0]];
+    return sliceFormulaAll(midwayFormula);
   }
 }
+//-------------------------------------------------------------------------------------------
 
-// 計算関数　-----------------------------------------------------------------------------
-const calcTypeOnce = (originFormula, inputNum, operand) => {
+// 計算用関数　-----------------------------------------------------------------------------
+const calcTypeOnce = (originFormula, inputNum, operator) => {
   let [separatedOperand, separatedOperator] = separateFormula(originFormula);
-  display.value = String(calculation(separatedOperand, inputNum, separatedOperator));
-  formula = `${formula}${inputNum}${operand}`;
-}
-
-const calcTypeFromLeftTwice = (originFormula, inputNum ,lastOperand) => {
-  let [separatedOperand1, separatedOperator1, separatedOperand2, separatedOperator2]
-  = separateFormula(originFormula);
-  separatedOperand2 = String(calculation(separatedOperand1, separatedOperand2, separatedOperator1));
-  display.value = String(calculation(separatedOperand2, inputNum, separatedOperator2));
-  formula = `${separatedOperand2}${separatedOperator2}${inputNum}${lastOperand}`;
-}
-
-const calcTypeRightOnly = (originFormula, inputNum ,lastOperand) => {
-  let [separatedOperand1, separatedOperator1, separatedOperand2, separatedOperator2]
-  = separateFormula(originFormula);
-  display.value = String(calculation(separatedOperand2, inputNum, separatedOperator2));
-  formula = `${separatedOperand1}${separatedOperator1}${display.value}${lastOperand}`;
-}
-
-const calcTypeAll = (originFormula, inputNum ,lastOperand) => {
-  let [separatedOperand1, separatedOperator1, separatedOperand2, separatedOperator2]
-  = separateFormula(originFormula);
-  separatedOperand2 = String(calculation(separatedOperand2, inputNum, separatedOperator2));
-  display.value = String(calculation(separatedOperand1, separatedOperand2, separatedOperator1));
-  formula = `${separatedOperand1}${separatedOperator1}${separatedOperand2}${lastOperand}`;
-}
-
-function getDecimalPosition(operand){
-  var strVal = String(operand);
-  var decimalPosition = 0;
-  if(strVal.lastIndexOf('.') !== -1){
-    decimalPosition = strVal.length - (strVal.lastIndexOf('.') + 1);
+  display.value = String(calculation(separatedOperand, separatedOperator, inputNum));
+  if(display.value === `エラー`) {
+    return display.value;
+  } else {
+    formula = `${formula}${inputNum}${operator}`;
+    return adjustResultForDisplay(display.value);
   }
-  return decimalPosition;
 }
 
-const calculation = (strFirstOperand, strSecondOperand, firstOperator) => {
-  let firstOperandDecimalVolume = getDecimalPosition(strFirstOperand);
-  let secondOperandDecimalVolume = getDecimalPosition(strSecondOperand);
-  let maxVolume = Math.max(firstOperandDecimalVolume,secondOperandDecimalVolume);
-  let numFirstOperand = Number(strFirstOperand);
-  let numSecondOperand = Number(strSecondOperand);
-  let intFirstOperand = parseInt((numFirstOperand.toFixed(maxVolume) + '').replace('.', ''));
-  let intSecondOperand = parseInt((numSecondOperand.toFixed(maxVolume) + '').replace('.', ''));
-  strFirstOperand = String(intFirstOperand);
-  strSecondOperand = String(intSecondOperand);
-  let fixOperand = Math.pow(10,maxVolume);
+const calcTypeFromLeftTwice = (originFormula, inputNum, lastOperator) => {
+  let [separatedOperand1, separatedOperator1, separatedOperand2, separatedOperator2]
+  = separateFormula(originFormula);
+  separatedOperand2 = String(calculation(separatedOperand1, separatedOperator1, separatedOperand2));
+  display.value = String(calculation(separatedOperand2, separatedOperator2, inputNum));
+  if(display.value === `エラー`) {
+    return display.value;
+  } else {
+    formula = `${separatedOperand2}${separatedOperator2}${inputNum}${lastOperator}`;
+    return adjustResultForDisplay(display.value);  
+  }
+}
 
-  if(firstOperator === '+') {
-    return (intFirstOperand + intSecondOperand) / fixOperand;   
-  } else if(firstOperator === '-') {
-    return (intFirstOperand - intSecondOperand) / fixOperand;   
-  } else if(firstOperator === '*') {
-    return (intFirstOperand * intSecondOperand) / fixOperand;   
-  } else if(firstOperator === '/') {
-    if((intFirstOperand === 0) || (intSecondOperand === 0) || (fixOperand === 0)) {
-      return 0;
-    } else {
-      return (intFirstOperand / intSecondOperand) / fixOperand;
+const calcTypeRightOnly = (originFormula, inputNum, lastOperator) => {
+  let [separatedOperand1, separatedOperator1, separatedOperand2, separatedOperator2]
+  = separateFormula(originFormula);
+  separatedOperand2 = String(calculation(separatedOperand2, separatedOperator2, inputNum));
+  if(separatedOperand2 === `エラー`) {
+    display.value = `エラー`;
+    return display.value;
+  } else {
+    formula = `${separatedOperand1}${separatedOperator1}${separatedOperand2}${lastOperator}`;
+    return adjustResultForDisplay(separatedOperand2); //右辺の計算結果を表示
+  }
+}
+
+const calcTypeFormulaOnly = (originFormula, inputNum, lastOperator) => {
+  let [separatedOperand1, separatedOperator1, separatedOperand2, separatedOperator2]
+  = separateFormula(originFormula);
+  separatedOperand2 = String(calculation(separatedOperand1, separatedOperator1, separatedOperand2));
+  if(separatedOperand2 === `エラー`) {
+    display.value = `エラー`;
+    return display.value;
+  } else {
+  formula = `${separatedOperand2}${separatedOperator2}${inputNum}${lastOperator}`;
+  return adjustResultForDisplay(inputNum); //入力数値をreturn
+  }
+}
+
+const calcTypeAll = (originFormula, inputNum, lastOperator) => {
+  let [separatedOperand1, separatedOperator1, separatedOperand2, separatedOperator2]
+  = separateFormula(originFormula);
+  separatedOperand2 = String(calculation(separatedOperand2, separatedOperator2, inputNum));
+  display.value = String(calculation(separatedOperand1, separatedOperator1, separatedOperand2));
+  if(display.value === `エラー`) {
+    return display.value;
+  } else {
+    formula = `${separatedOperand1}${separatedOperator1}${separatedOperand2}${lastOperator}`;
+    return adjustResultForDisplay(display.value);
+  }
+}
+
+const getDecimalPosition = (operand) => {
+  if(includeDecimal.test(formula)) {
+    let decimal = operand.substr(operand.indexOf('.') + 1);
+    let decimalPosition = decimal.length; 
+    return decimalPosition; 
+  } else {
+    return 1;
+  }
+}
+
+const removeErrorDecimal = (operand, decimalVolume1, decimalVolume2) => {
+  let operandFromDecimal = operand.match(getOperandDecimal);
+  let errorDecimal = operandFromDecimal[0].slice(decimalVolume1 + decimalVolume2, operand.length);
+  return operand.replace(errorDecimal, '');
+}
+
+const calculation = (strFirstOperand, operator, strSecondOperand) => {
+  try {
+    if(operator === '/') { //除算の場合
+      let calcResult = String(Function('return ('+`${strFirstOperand}${operator}${strSecondOperand}`+');')());
+      if(!/\d/.test(Number(calcResult))) { //エラー表示の場合
+        allClear();
+        throw 'エラー';
+      } else {
+        return calcResult;
+      }
+    } else { //除算以外の場合
+      if((includeDecimal.test(strFirstOperand)) || (includeDecimal.test(strSecondOperand)) || (includeDecimal.test(display.value))) {
+        let firstOperandDecimalVolume = getDecimalPosition(strFirstOperand);
+        let secondOperandDecimalVolume = getDecimalPosition(strSecondOperand);
+        let calcResult = String(Function('return ('+`${strFirstOperand}${operator}${strSecondOperand}`+');')());
+        if(includeDecimal.test(calcResult)) {
+          calcResult = removeErrorDecimal(calcResult, firstOperandDecimalVolume, secondOperandDecimalVolume);
+        }
+        return String(Number(calcResult)); //小数点以下、末尾0削除
+      } else {
+        return String(Function('return ('+`${strFirstOperand}${operator}${strSecondOperand}`+');')());
+      }
     }
-  } else if (firstOperator === '') {
-    return intSecondOperand;
+  } catch(error) {
+    return error;
   }
+}
+
+const adjustResultForDisplay = (calcResult) => {
+  if(((Number(calcResult) < 0.00000001) && (Number(calcResult) > 0)) ||
+  ((Number(calcResult) < 0) && (Number(calcResult) > -0.00000001))) {
+    calcResult = exponentiationOneBillionth(calcResult);
+  } else if((Number(calcResult) > 999999999) || (Number(calcResult) < -999999999)) {
+    calcResult = exponentiationBillion(calcResult);
+  } else {
+    calcResult = decimalRound(calcResult);
+    calcResult = addComma(calcResult);  
+  }
+  return calcResult;
+}
+
+
+const decimalRound = (calcResult) => {
+  let displayDecimal ='';
+  let integer = calcResult.match(getOperandInteger);
+  if(judgeMinusOperand.test(integer[0])) {
+    displayDecimal = 9 - (integer[0].length - 1);
+  } else {
+    displayDecimal = 9 - integer[0].length;
+  }
+  calcResult = Number(calcResult).toFixed(displayDecimal);
+  console.log(calcResult);
+  return String(Number(calcResult));
+}
+
+const exponentiationBillion = (calcResult) => {//2962959997.03704 = 2.96296e9
+  let exponentiation = '';
+  let integer = calcResult.match(getOperandInteger);
+  if(judgeMinusOperand.test(integer[0])) {
+    exponentiation = `e${integer[0].length - 2}`;
+    calcResult = Number(integer[0]) / Math.pow(10, (integer[0].length - 2));
+  } else {
+    exponentiation = `e${integer[0].length - 1}`;
+    calcResult = Number(integer[0]) / Math.pow(10, (integer[0].length - 1));
+  }
+  let displayDecimal = 8 - exponentiation.length;
+  calcResult = Number(calcResult).toFixed(displayDecimal);
+  calcResult = String(Number(calcResult));
+  return `${String(calcResult)}${exponentiation}`;
+}
+
+const exponentiationOneBillionth = (calcResult) => {
+  let exponentiation = calcResult.match(getFirstAppearOneOver);
+  let decimalPointNum = calcResult.replace(exponentiation, '');
+  if(judgeMinusOperand.test(calcResult)) {
+    calcResult = Number(calcResult) * Math.pow(10, (exponentiation[0].length - 2)); //小数点以下、0の個数分
+    calcResult = Number(calcResult).toFixed(decimalPointNum.length - 1);
+    exponentiation[0] = `e-${exponentiation[0].length - 2}`; //値マイナス時のe生成
+  } else {
+    calcResult = Number(calcResult) * Math.pow(10, (exponentiation[0].length - 1));
+    calcResult = Number(calcResult).toFixed(decimalPointNum.length);
+    exponentiation[0] = `e-${exponentiation[0].length - 1}`; //値プラス時のe生成
+  }
+  calcResult = String(Number(calcResult));
+  return `${String(calcResult)}${exponentiation[0]}`;
 }
 
 // -------------------------------------------------------------------------------------------
 
 const allClear = () => {
-  operand1 = '0';
-  setOperand = 'off';
-  operand2 = '0';
-  clickedEqual = '';
   operator = '';
   displayReset = '';
   display.value = '0';
-  start = '';
+  setOperand = 'off';
+  formula = '';
+  inputTimeOfMulti = '';
+  clickedEqual = '';
+}
+
+const adjustOperand = (operand) => {
+  operand = removeComma(operand);
+  operand = removeEndDecimal(operand);
+  return operand;
+}
+
+const removeEndDecimal = (operand) => {
+  if(judgeEndDecimal.test(operand)) {
+    operand = operand.slice(0, -1);
+  }
+  return operand;
 }
 
 const addition = (inputResult) => {
   if(setOperand === 'off') { //数字未入力の場合
-    formula = changeOperator(formula, operatorList[0]);
-    if (judgeOneSideFormula.test(formula)) {
-      let [separatedOperand, separatedOperator] = separateFormula(formula);
-      display.value = separatedOperand;
-    } else if(judgeComplexFormula.test(formula)) {
-      let [separatedOperand1, separatedOperator, separatedOperand2, separatedOperator2] = separateFormula(formula);
-      display.value = String(calculation(separatedOperand1, separatedOperand2, separatedOperator));
+    if(formula === '') { //計算式なし
+      formula = `0${operatorList[0]}`;
+    } else { //計算式あり
+      formula = changeOperator(formula, operatorList[0]); //演算子変更
+      if (judgeOneSideFormula.test(formula)) { //式の型：1+|-|*|/
+        display.value = adjustOperand(display.value);
+      } else if(judgeComplexFormula.test(formula)) { //式の型：(1+|-|*|/)(1+|-|*|/)
+        let [separatedOperand1, separatedOperator, separatedOperand2, separatedOperator2] 
+        = separateFormula(formula);
+        display.value = String(calculation(separatedOperand1, separatedOperator, separatedOperand2));
+      }
+      display.value = adjustResultForDisplay(display.value);
     }
   } else { //数字入力済
+    inputResult = adjustOperand(inputResult);
     if(formula === '') { //初回押下
       formula = `${inputResult}${operatorList[0]}`;
     } else if(!includeMultiOrDiv.test(formula)) { //加算減算経由
       if(judgeOneSideFormula.test(formula)) { 
-        calcTypeOnce(formula, inputResult ,operatorList[0]);
+        display.value = calcTypeOnce(formula, inputResult ,operatorList[0]);
       } else if(judgeComplexFormula.test(formula)) {
-        calcTypeFromLeftTwice(formula, inputResult, operatorList[0]);
+        display.value = calcTypeFromLeftTwice(formula, inputResult, operatorList[0]);
       }
     } else if(includeMultiOrDiv.test(formula)) { //乗算除算経由
-      if(judgeOneSideFormula.test(formula)) {
-        calcTypeOnce(formula, inputResult ,operatorList[0]);
-      } else if(judgeComplexFormula.test(formula)) { //混在計算
-        if(judgeFirstOperatorMultiOrDiv.test(formula)) {
-          calcTypeFromLeftTwice(formula, inputResult, operatorList[0]);
-        } else if(judgeFirstOperatorAddOrSub.test(formula)) {
-          calcTypeAll(formula, inputResult, operatorList[0]);
+      if(judgeOneSideFormula.test(formula)) { //式の型：1*|/
+        display.value = calcTypeOnce(formula, inputResult ,operatorList[0]);
+      } else if(judgeComplexFormula.test(formula)) { //式の型：(1+|-|*|/)(1+|-|*|/)
+        if(judgeFirstOperatorMultiOrDiv.test(formula)) { //式の型：(1*|/)(1+|-|*|/)
+          display.value = calcTypeFromLeftTwice(formula, inputResult, operatorList[0]);
+        } else if(judgeFirstOperatorAddOrSub.test(formula)) { //式の型：(1+|-)(1+|-|*|/)
+          display.value = calcTypeAll(formula, inputResult, operatorList[0]);
         }
       }
     }
   }
-  console.log(formula);
-  inputTimeOfMulti = inputResult;
-  setReEnter();
+  if(display.value === `エラー`) {
+    return;
+  } else {
+    console.log(formula);
+    inputTimeOfMulti = inputResult;
+    setReEnter();  
+  }
 }
 
 const subtraction = (inputResult) => {
   if(setOperand === 'off') { //数字未入力の場合
-    formula = changeOperator(formula, operatorList[1]);
-    if (judgeOneSideFormula.test(formula)) {
-      let [separatedOperand, separatedOperator] = separateFormula(formula);
-      display.value = separatedOperand;
-    } else if(judgeComplexFormula.test(formula)) {
-      let [separatedOperand1, separatedOperator, separatedOperand2, separatedOperator2] = separateFormula(formula);
-      display.value = String(calculation(separatedOperand1, separatedOperand2, separatedOperator));
+    if(formula === '') { //計算式なし
+      formula = `0${operatorList[1]}`;
+    } else { //計算式あり
+      formula = changeOperator(formula, operatorList[1]);
+      if (judgeOneSideFormula.test(formula)) { //式の型：1+|-|*|/
+        display.value = adjustOperand(display.value);
+      } else if(judgeComplexFormula.test(formula)) {
+        let [separatedOperand1, separatedOperator, separatedOperand2, separatedOperator2] = separateFormula(formula);
+        display.value = String(calculation(separatedOperand1, separatedOperator, separatedOperand2));
+      }
+      display.value = adjustResultForDisplay(display.value);
     }
   } else { //数字入力済
+    inputResult = adjustOperand(inputResult);
     if(formula === '') { //初回押下
       formula = `${inputResult}${operatorList[1]}`;
     } else if(!includeMultiOrDiv.test(formula)) { //加算減算経由
       if(judgeOneSideFormula.test(formula)) { 
-        calcTypeOnce(formula, inputResult ,operatorList[1]);
+        display.value = calcTypeOnce(formula, inputResult ,operatorList[1]);
       } else if(judgeComplexFormula.test(formula)) {
-        calcTypeFromLeftTwice(formula, inputResult, operatorList[1]);
+        display.value = calcTypeFromLeftTwice(formula, inputResult, operatorList[1]);
       }
     } else if(includeMultiOrDiv.test(formula)) { //乗算除算経由
       if(judgeOneSideFormula.test(formula)) {
-        calcTypeOnce(formula, inputResult ,operatorList[1]);
+        display.value = calcTypeOnce(formula, inputResult ,operatorList[1]);
       } else if(judgeComplexFormula.test(formula)) { //混在計算
         if(judgeFirstOperatorMultiOrDiv.test(formula)) {
-          calcTypeFromLeftTwice(formula, inputResult, operatorList[1]);
+          display.value = calcTypeFromLeftTwice(formula, inputResult, operatorList[1]);
         } else if(judgeFirstOperatorAddOrSub.test(formula)) {
-          calcTypeAll(formula, inputResult, operatorList[1]);
+          display.value = calcTypeAll(formula, inputResult, operatorList[1]);
         }
       }
     }
   }
-  console.log(formula);
-  inputTimeOfMulti = inputResult;
-  setReEnter();
+  if(display.value === `エラー`) {
+    return;
+  } else {
+    console.log(formula);
+    inputTimeOfMulti = inputResult;
+    setReEnter();
+  }
 }
 
 const multiplication = (inputResult) => {
   if(setOperand === 'off') { //数字未入力
-    formula = changeOperator(formula, operatorList[2]);
-    if(inputResult === '0') { //初回未入力でのオペレーター押下
+    if(formula === '') { //初回未入力でのオペレーター押下
       formula = `0${operatorList[2]}`;
     } else { //計算中、数字未入力でのオペレーター押下
-      if(judgeOneSideFormula.test(formula)) { //計算式未完成時
-        display.value = inputTimeOfMulti;
+      formula = changeOperator(formula, operatorList[2]);
+      if(judgeOneSideFormula.test(formula)) { //式の型：1+|-|*|/
+        display.value = adjustOperand(display.value);
       } else if(judgeComplexFormula.test(formula)){ //計算式完成後
-        let [separatedOperand1, separatedOperator, separatedOperand2, separatedOperator2] 
-        = separateFormula(formula);
-        display.value = separatedOperand2;
+        if(includeAddOrSub.test(formula)) {
+          let [separatedOperand1, separatedOperator, separatedOperand2, separatedOperator2] 
+          = separateFormula(formula);
+          display.value = separatedOperand2;
+        } else if(includeMultiOrDiv.test(formula)) {
+          let [separatedOperand1, separatedOperator, separatedOperand2, separatedOperator2] 
+          = separateFormula(formula);
+          display.value = String(calculation(separatedOperand1, separatedOperator, separatedOperand2));
+        }
       }
+      display.value = adjustResultForDisplay(display.value);
     }
   } else if(setOperand === 'on') { //数字入力済
+    inputResult = adjustOperand(inputResult);
     if(formula === '') { //初回押下
       formula = `${inputResult}${operatorList[2]}`;
     } else if(!includeAddOrSub.test(formula)) { //乗算除算経由
       if(judgeOneSideFormula.test(formula)) {
-        calcTypeOnce(formula, inputResult, operatorList[2]);
+        display.value = calcTypeOnce(formula, inputResult, operatorList[2]);
       } else if(judgeComplexFormula.test(formula)) {
-        calcTypeFromLeftTwice(formula, inputResult, operatorList[2]);
+        display.value = calcTypeFromLeftTwice(formula, inputResult, operatorList[2]);
       }
     } else if(includeAddOrSub.test(formula)) { //加算減算経由
       if(judgeOneSideFormula.test(formula)) {
         formula = `${formula}${inputResult}${operatorList[2]}`;
       } else if(judgeComplexFormula.test(formula)) { //複雑計算式
-        calcTypeRightOnly(formula, inputResult, operatorList[2]);
+        if(lastOperatorAddOrSub.test(formula)) { 
+          display.value = calcTypeFormulaOnly(formula, inputResult, operatorList[2]);
+        } else if(lastOperatorMultiOrDiv.test(formula)) {
+          display.value = calcTypeRightOnly(formula, inputResult, operatorList[2]);
+        }
       }
     }
   }
-  console.log(formula);
-  inputTimeOfMulti = inputResult;
-  setReEnter();
+  if(display.value === `エラー`) {
+    return;
+  } else {
+    console.log(formula);
+    inputTimeOfMulti = inputResult;
+    setReEnter();
+  }
 }
 
 const division = (inputResult) => {
-  operator = operatorList[3];
-  setValue(inputResult);
+  if(setOperand === 'off') { //数字未入力
+    if(formula === '') { //初回未入力でのオペレーター押下
+      formula = `0${operatorList[3]}`;
+    } else { //計算中、数字未入力でのオペレーター押下
+      formula = changeOperator(formula, operatorList[3]);
+      if(judgeOneSideFormula.test(formula)) { //式の型：1+|-|*|/
+        display.value = adjustOperand(display.value);
+      } else if(judgeComplexFormula.test(formula)){ //計算式完成後
+        if(includeAddOrSub.test(formula)) {
+          let [separatedOperand1, separatedOperator, separatedOperand2, separatedOperator2] 
+          = separateFormula(formula);
+          display.value = separatedOperand2;
+        } else if(includeMultiOrDiv.test(formula)) {
+          let [separatedOperand1, separatedOperator, separatedOperand2, separatedOperator2] 
+          = separateFormula(formula);
+          display.value = String(calculation(separatedOperand1, separatedOperator, separatedOperand2));
+        }
+      }
+      display.value = adjustResultForDisplay(display.value);
+    }
+  } else if(setOperand === 'on') { //数字入力済
+    inputResult = adjustOperand(inputResult);
+    if(formula === '') { //初回押下
+      formula = `${inputResult}${operatorList[3]}`;
+    } else if(!includeAddOrSub.test(formula)) { //乗算除算経由
+      if(judgeOneSideFormula.test(formula)) {
+        display.value = calcTypeOnce(formula, inputResult, operatorList[3]);
+      } else if(judgeComplexFormula.test(formula)) {
+        display.value = calcTypeFromLeftTwice(formula, inputResult, operatorList[3]);
+      }
+    } else if(includeAddOrSub.test(formula)) { //加算減算経由
+      if(judgeOneSideFormula.test(formula)) {
+        formula = `${formula}${inputResult}${operatorList[3]}`;
+      } else if(judgeComplexFormula.test(formula)) { //複雑計算式
+        if(lastOperatorAddOrSub.test(formula)) { 
+          display.value = calcTypeFormulaOnly(formula, inputResult, operatorList[3]);
+        } else if(lastOperatorMultiOrDiv.test(formula)) {
+          display.value = calcTypeRightOnly(formula, inputResult, operatorList[3]);
+        }
+      }
+    }
+  }
+  if(display.value === `エラー`) {
+    return;
+  } else {
+    console.log(formula);
+    inputTimeOfMulti = inputResult;
+    setReEnter();
+  }
 }
 
 const setReEnter = () => {
@@ -391,41 +587,26 @@ buttonAllClear.addEventListener('click', () => {
 });
 
 buttonPlusMinus.addEventListener('click', () => {
+  adjustResultForDisplay(display.value);
 });
 
 buttonPercent.addEventListener('click', () => {
-  if(start === '') {
-    return;
-  } else {
-  }
 });
 
 buttonDivision.addEventListener('click', () => {
-  if(start === '') {
-    return;
-  } else {
-    division(display.value);
-  }
+  division(display.value);
 });
 
-const checkDecimal = (originNumber, decimal) => {
-  if(/^(?=.*\.).*$/.test(originNumber)) {
-    return;
-  } else {
-    display.value = `${originNumber}${decimal}`;
-  }
-}
-
 buttonSeven.addEventListener('click', () => {
-    addDisplayNumber1(display.value,buttonSeven.value);
+  addDisplayNumber(display.value,buttonSeven.value);
 });
 
 buttonEight.addEventListener('click', () => {
-     addDisplayNumber1(display.value,buttonEight.value);
+  addDisplayNumber(display.value,buttonEight.value);
 });
 
 buttonNine.addEventListener('click', () => {
-  addDisplayNumber1(display.value,buttonNine.value);
+  addDisplayNumber(display.value,buttonNine.value);
 });
 
 buttonMultiplication.addEventListener('click', () => {
@@ -433,35 +614,31 @@ buttonMultiplication.addEventListener('click', () => {
 });
 
 buttonFour.addEventListener('click', () => {
-  addDisplayNumber1(display.value,buttonFour.value);
+  addDisplayNumber(display.value,buttonFour.value);
 });
 
 buttonFive.addEventListener('click', () => {
-  addDisplayNumber1(display.value,buttonFive.value);
+  addDisplayNumber(display.value,buttonFive.value);
 });
 
 buttonSix.addEventListener('click', () => {
-  addDisplayNumber1(display.value,buttonSix.value);
+  addDisplayNumber(display.value,buttonSix.value);
 });
 
 buttonSubtraction.addEventListener('click', () => {
-  if(start === '') {
-    return;
-  } else {
-    subtraction(display.value);
-  }
+  subtraction(display.value);
 });
 
 buttonOne.addEventListener('click', () => {
-  addDisplayNumber1(display.value,buttonOne.value);
+  addDisplayNumber(display.value,buttonOne.value);
 });
 
 buttonTwo.addEventListener('click', () => {
-  addDisplayNumber1(display.value,buttonTwo.value);
+  addDisplayNumber(display.value,buttonTwo.value);
 });
 
 buttonThree.addEventListener('click', () => {
-  addDisplayNumber1(display.value,buttonThree.value);
+  addDisplayNumber(display.value,buttonThree.value);
 });
 
 buttonAddition.addEventListener('click', () => {
@@ -469,21 +646,11 @@ buttonAddition.addEventListener('click', () => {
 });
 
 buttonZero.addEventListener('click', () => {
-  addDisplayNumber1(display.value, buttonZero.value);
+  addDisplayNumber(display.value, buttonZero.value);
 });
 
 buttonDecimal.addEventListener('click', () => {
-  if(setOperand1 === 'off') {
-    addDisplayNumber1(display.value, buttonDecimal.value);
-    // checkDecimal(display.value, buttonDecimal.value);
-  } else {
-    addDisplayNumber2(display.value, buttonDecimal.value);
-    // if(/^(?=.*\.).*$/.test(operand2)) {
-    //   return;
-    // } else {
-    //   addDisplayNumber2(operand2, buttonDecimal.value);
-    // }
-  }
+    addDisplayNumber(display.value, buttonDecimal.value);
 });
 
 buttonEqual.addEventListener('click', () => {
