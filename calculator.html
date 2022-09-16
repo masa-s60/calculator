@@ -13,80 +13,84 @@
     </header>
 
     <div class="p-calculator u-calculator">
-      <input id="display" class="p-display u-display" type="text" value="0">
+      <input id="display" class="p-display u-display" type="text" value="0" disabled>
 
       <table class="p-keypad u-keypad">
-        <tr class="">
-          <td class="">
-            <input id="AC" class="p-keypad__all-clear" type="button" value="AC">
-          </td>
-          <td>
-            <input id="plusMinus" class="p-keypad__symbol-change" type="button" value="+/-">
-          </td>
-          <td>
-            <input id="percent" class="p-keypad__percent" type="button" value="%">
-          </td>
-          <td>
-            <input id="division" class="p-keypad__division" type="button" value="÷">
-          </td>
-        </tr>
-        <tr>
-          <td>
-            <input id="seven" type="button" value="7">
-          </td>
-          <td>
-            <input id="eight" type="button" value="8">
-          </td>
-          <td>
-            <input id="nine" type="button" value="9">
-          </td>
-          <td>
-            <input id="mult" class="p-keypad__multiplication" type="button" value="×">
-          </td>
-        </tr>
-        <tr>
-          <td>
-            <input id="four" type="button" value="4">
-          </td>
-          <td>
-            <input id="five" type="button" value="5">
-          </td>
-          <td>
-            <input id="six" type="button" value="6">
-          </td>
-          <td>
-            <input id="sub" class="p-keypad__subtraction" type="button" value="－">
-          </td>
-        </tr>
-        <tr>
-          <td>
-            <input id="one" type="button" value="1">
-          </td>
-          <td>
-            <input id="two" type="button" value="2">
-          </td>
-          <td>
-            <input id="three" type="button" value="3">
-          </td>
-          <td>
-            <input id="add" class="p-keypad__addition" type="button" value="+">
-          </td>
-        </tr>
-        <tr>
-          <td colspan="2">
-            <input id="zero" class="p-keypad__zero" type="button" value="0">
-          </td>
-          <td>
-            <input id="decimal"  type="button" value=".">
-          </td>
-          <td>
-            <input id="equal" type="button" value="=">
-          </td>
-        </tr>
+        <tbody>
+          <tr class="">
+            <td class="">
+              <input id="AC" class="p-keypad__clear" type="button" value="AC">
+            </td>
+            <td>
+              <input id="plusMinus" class="p-keypad__plus-minus" type="button" value="+/-">
+            </td>
+            <td>
+              <input id="percent" class="p-keypad__percent" type="button" value="%">
+            </td>
+            <td>
+              <input id="division" class="p-keypad__operator" type="button" value="÷">
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <input id="seven" class="p-keypad__number" type="button" value="7">
+            </td>
+            <td>
+              <input id="eight" class="p-keypad__number" type="button" value="8">
+            </td>
+            <td>
+              <input id="nine" class="p-keypad__number" type="button" value="9">
+            </td>
+            <td>
+              <input id="mult" class="p-keypad__operator" type="button" value="×">
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <input id="four" class="p-keypad__number" type="button" value="4">
+            </td>
+            <td>
+              <input id="five" class="p-keypad__number" type="button" value="5">
+            </td>
+            <td>
+              <input id="six" class="p-keypad__number" type="button" value="6">
+            </td>
+            <td>
+              <input id="sub" class="p-keypad__operator p-keypad__operator--subtraction" type="button" value="－">
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <input id="one" class="p-keypad__number" type="button" value="1">
+            </td>
+            <td>
+              <input id="two" class="p-keypad__number" type="button" value="2">
+            </td>
+            <td>
+              <input id="three" class="p-keypad__number" type="button" value="3">
+            </td>
+            <td>
+              <input id="add" class="p-keypad__operator" type="button" value="+">
+            </td>
+          </tr>
+          <tr>
+            <td colspan="2">
+              <input id="zero" class="p-keypad__number p-keypad__number--zero" type="button" value="0">
+            </td>
+            <td>
+              <input id="decimal" class="p-keypad__decimal" type="button" value=".">
+            </td>
+            <td>
+              <input id="equal" class="p-keypad__equal" type="button" value="=">
+            </td>
+          </tr>
+        </tbody>
       </table>
-
+    </div>
+    <div class="l-layar1 p-layar-remove">
+      <img class="p-title p-display-title" src="./title.png" alt="">
     </div>
 
-    <script type="text/javascript" src="./calculator.js"></script>  
+    <script type="text/javascript" src="./calculator.js"></script>
   </body>
 </html>

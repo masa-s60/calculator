@@ -1,5 +1,5 @@
 const display = document.getElementById('display');
-const buttonAllClear = document.getElementById('AC');
+const buttonClear = document.getElementById('AC');
 const buttonPlusMinus = document.getElementById('plusMinus');
 const buttonPercent = document.getElementById('percent');
 const buttonDivision = document.getElementById('division');
@@ -18,6 +18,9 @@ const buttonAddition = document.getElementById('add');
 const buttonZero = document.getElementById('zero');
 const buttonDecimal = document.getElementById('decimal');
 const buttonEqual = document.getElementById('equal');
+const operatorButtons = [buttonDivision, buttonMultiplication, buttonSubtraction, buttonAddition];
+const buttons = document.querySelectorAll('tbody > tr > td > input');
+
 
 const operatorList = ['+', '-', '*', '/'];
 let displayReset = '';
@@ -107,7 +110,8 @@ const checkDigit = (originNumber) => {
 // -------------------------------------------------------------------------
 
 const addDisplayNumber = (displayNum, clickNumber) => {
-  buttonAllClear.value = 'C';
+  changeCharacterToC();
+  removeOperatorClassActive();
   if((displayReset === 'on') || (clickedPercent === 'on')) { //オペレーター押下後、もしくは初回入力
     display.value = '0';
     displayNum = '0';
@@ -121,8 +125,15 @@ const addDisplayNumber = (displayNum, clickNumber) => {
   } else {
     input(clickNumber);
     display.value = addComma(display.value);
+    displayFontSize(display.value);
     setOperand = 'on';
   }
+}
+
+const changeCharacterToC = () => {
+  buttonClear.style.transition = '0s';
+  buttonClear.value = 'C';
+  buttonClear.style.padding = '14px 18px';
 }
 
 const input = (addNumber) => {
@@ -140,6 +151,29 @@ const input = (addNumber) => {
       display.value = display.value.slice(0, -1); //数字初回入力時の表示0削除
     }
   display.value = `${display.value}${addNumber}`;
+  }
+}
+
+const displayFontSize = (displayNumber) => {
+  console.log(displayNumber.length);
+  if(displayNumber.length <= 6) {
+    display.style.fontSize = '60px';
+  } else if(displayNumber.length === 6) {
+    display.style.fontSize = '59px';
+  } else if(displayNumber.length === 7) {
+    display.style.fontSize = '57px';
+  } else if(displayNumber.length === 8) {
+    display.style.fontSize = '53px';
+  } else if(displayNumber.length === 9) {
+    display.style.fontSize = '47px';
+  } else if(displayNumber.length === 10) {
+    display.style.fontSize = '42px';
+  } else if(displayNumber.length === 11) {
+    display.style.fontSize = '39px';
+  } else if(displayNumber.length === 12) {
+    display.style.fontSize = '35px';
+  } else if(displayNumber.length === 13) {
+    display.style.fontSize = '34px';
   }
 }
 
@@ -258,16 +292,9 @@ const calcTypeAllFromRight = (originFormula, inputNum, lastOperator) => {
 }
 
 const getDecimalValue = (operand) => {
-    let decimal = operand.substr(operand.indexOf('.') + 1);
-    return decimal.length;
+  let decimal = operand.substr(operand.indexOf('.') + 1);
+  return decimal.length;
 }
-
-const removeErrorDecimal = (operand, decimalVolume1, decimalVolume2) => { //計算誤差0.0000000000001の削除
-  let operandFromDecimal = operand.match(getOperandDecimal); 
-  let errorDecimal = operandFromDecimal[0].slice(decimalVolume1 + decimalVolume2, operand.length);
-  return operand.replace(errorDecimal, '');
-}
-
 // ---
 const getDecimalPosition = (operand) => {
   return (operand.length - 1) - operand.lastIndexOf('.');
@@ -375,6 +402,7 @@ const adjustResultForDisplay = (calcResult) => {
         calcResult = addComma(calcResult);
       }
     }
+    displayFontSize(calcResult);
     return calcResult;
   }
 }
@@ -516,6 +544,16 @@ const allClear = () => {
   clickedEqual = 'off';
   clickedPercent = 'off';
   display.value = 0;
+  displayFontSize(display.value);
+  buttonClear.classList.remove('is-MouseUp');
+  buttonClear.classList.remove('is-MouseDown');
+  removeOperatorClassActive();
+}
+
+const removeOperatorClassActive = () => {
+  operatorButtons.forEach((operator, length) => {
+    operator.classList.remove('is-active');
+  });
 }
 
 const resetOnError = () => {
@@ -525,6 +563,7 @@ const resetOnError = () => {
   numStorage = '';
   clickedEqual = 'off';
   clickedPercent = 'off';
+  displayFontSize(display.value);
   setReEnter();
 }
 
@@ -860,12 +899,16 @@ const equal = (inputResult) => {
   } else {
     console.log(formula);
     setReEnter();
+    displayFontSize(display.value);
+    removeOperatorClassActive();
   }
 }
 
 const oneHundredth = (inputResult) => {
-  console.log(formula);
   try {
+    if(display.value === 'エラー') {
+      return;
+    }
     clickedPercent = 'on';
     inputResult = adjustOperand(inputResult);
     inputResult = String(integerCalculation(inputResult, operatorList[3], '100'));
@@ -899,18 +942,50 @@ const changePlusMinus = (inputResult) => {
   } else {
     display.value = `-${inputResult}`;
   }
+  displayFontSize(display.value);
 }
 
 // 各種ボタン機能------------------------------------------------------
-buttonAllClear.addEventListener('click', () => {
-  if(buttonAllClear.value !== 'C') { //数字未入力の場合
+buttons.forEach((button, length) => {
+  button.addEventListener('mousedown', () => {
+    button.classList.remove('is-mouseUp');
+    button.classList.add('is-mouseDown');
+  });
+});
+
+buttons.forEach((button, length) => {
+  button.addEventListener('mouseup', () => {
+    button.classList.remove('is-mouseDown');
+    button.classList.add('is-mouseUp');
+    });
+});
+
+operatorButtons.forEach((operator, length) => {
+  operator.addEventListener('mouseup', () => {
+    removeOperatorClassActive();
+    changeOperatorButtonStyle(operator);
+  });
+});
+
+const changeOperatorButtonStyle = (operatorButton) => {
+  operatorButton.classList.add('is-active');
+}
+
+buttonClear.addEventListener('click', () => {
+  if(buttonClear.value !== 'C') { //数字未入力の場合
     allClear();
   } else {
-    display.value = '0';
+    changeCharacterToAC();
+    displayFontSize(display.value);
     setReEnter();
-    buttonAllClear.value = 'AC';
   }
 });
+
+const changeCharacterToAC = () => {
+  display.value = '0';
+  buttonClear.value = 'AC';
+  buttonClear.style.padding = '14px 12px';
+}
 
 buttonPlusMinus.addEventListener('click', () => {
   changePlusMinus(display.value);
@@ -919,6 +994,7 @@ buttonPlusMinus.addEventListener('click', () => {
 buttonPercent.addEventListener('click', () => {
   oneHundredth(display.value);
 });
+
 
 buttonDivision.addEventListener('click', () => {
   division(display.value);
@@ -939,6 +1015,9 @@ buttonNine.addEventListener('click', () => {
 buttonMultiplication.addEventListener('click', () => {
   multiplication(display.value);
 });
+buttonMultiplication.addEventListener('mouseup', () => {
+  changeOperatorButtonStyle(buttonMultiplication);
+});
 
 buttonFour.addEventListener('click', () => {
   addDisplayNumber(display.value,buttonFour.value);
@@ -955,6 +1034,9 @@ buttonSix.addEventListener('click', () => {
 buttonSubtraction.addEventListener('click', () => {
   subtraction(display.value);
 });
+buttonSubtraction.addEventListener('mouseup', () => {
+  changeOperatorButtonStyle(buttonSubtraction);
+});
 
 buttonOne.addEventListener('click', () => {
   addDisplayNumber(display.value,buttonOne.value);
@@ -970,6 +1052,9 @@ buttonThree.addEventListener('click', () => {
 
 buttonAddition.addEventListener('click', () => {
   addition(display.value);
+});
+buttonAddition.addEventListener('mouseup', () => {
+  changeOperatorButtonStyle(buttonAddition);
 });
 
 buttonZero.addEventListener('click', () => {
